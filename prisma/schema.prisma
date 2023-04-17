@@ -1,0 +1,223 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_CONNECTION_STRING")
+}
+
+model OrderItem {
+  id                       String                    @id @default(uuid()) @db.Uuid
+  orderId                  String                    @map("order_id") @db.Uuid
+  order                    Order                     @relation(fields: [orderId], references: [id])
+  clinicianId              String                    @map("clinician_id") @db.Uuid
+  rxId                     String?                   @map("rx_id") @db.Uuid
+  statusId                 String                    @map("status_id") @db.Uuid
+  previousStatusId         String?                   @map("previous_status_id") @db.Uuid
+  createdAt                DateTime @default(now())  @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime @default(now())  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  dueOn                    DateTime @default(now())  @map("due_on") @db.Timestamptz(6)
+  priority                 Int                       @db.SmallInt
+
+  rxRegimenId              String                    @map("rx_regimen_id") @db.Uuid
+  rxProductId              String                    @map("rx_product_id") @db.Uuid
+  mappedProductId          String?                   @map("mapped_product_id") @db.VarChar(13)
+  dispensedProductId       String?                   @map("dispensed_product_id") @db.Uuid
+  insuranceIds             String[]?                 @map("insurance_ids") @db.Uuid
+  isOTC                    Boolean                   @map("is_otc") @default(false)
+
+  @@map("order_items")
+}
+
+model Order {
+  id                       String                    @id @default(uuid()) @db.Uuid
+  orderItems               OrderItem[]               @relation
+  patientId                String                    @map("patient_id") @db.Uuid
+  clinicId                 String                    @map("clinic_id") @db.Uuid
+  pharmacyId               String?                   @map("pharmacy_id") @db.Uuid
+  orderBatchId             String?                   @map("order_batch_id") @db.Uuid
+  shippedAddressId         String?                   @map("shipped_address_id") @db.Uuid
+  statusId                 String                    @map("status_id") @db.Uuid
+  previousStatusId         String?                   @map("previous_status_id") @db.Uuid
+  createdAt                DateTime @default(now())  @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime @default(now())  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  dueOn                    DateTime @default(now())  @map("due_on") @db.Timestamptz(6)
+  highestPriority          Int                       @default(0) @map("highest_priority") @db.SmallInt
+
+  @@map("orders")
+}
+
+model Regimen {
+  id                  String   @id @default(uuid()) @db.Uuid
+  productId           String   @map("product_id") @db.Uuid
+  billingUnitQuantity Int      @map("billing_unit_quantity") @db.SmallInt
+  billingUnitType     String   @map("billing_unit_type") @db.Text
+  daysSupply          Int      @map("days_supply") @db.SmallInt
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("regimens")
+}
+
+model Product {
+  id              String                    @id @default(uuid()) @db.Uuid
+  upc             String                    @db.VarChar(255)
+  formattedNdc    String?                   @map("formatted_ndc") @db.VarChar(13)
+  displayName     String                    @map("display_name") @db.VarChar(255)
+  packageId       String?                   @map("package_id") @db.Uuid
+  createdAt       DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime                  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("products")
+}
+
+/// Units expressed in ounces and inches
+model Package {
+  id     String @id @default(uuid()) @db.Uuid // Warning: Prisma tries to strip the default.
+  vendor String @db.VarChar(255)
+  weight Float  @db.Real
+  length Float  @db.Real
+  width  Float  @db.Real
+  height Float  @db.Real
+
+  @@map("packages")
+}
+
+model Prescription {
+  id                   String      @id @default(uuid()) @db.Uuid
+  doseSpotId           String      @map("dose_spot_id") @db.VarChar(255)
+  doseSpotStatus       String      @map("dose_spot_status") @db.VarChar(255)
+  createdAt            DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("prescriptions")
+}
+
+model FilledPrescription {
+  id                   String      @id @default(uuid()) @db.Uuid
+  rxDoseSpotId         String      @map("rx_dose_spot_id") @db.VarChar(255)
+  patientId            String      @map("patient_id") @db.Uuid
+  patientFirstName     String      @map("patient_first_name") @db.VarChar(255)
+  patientLastName      String      @map("patient_last_name") @db.VarChar(255)
+  patientDOB           DateTime    @map("patient_dob") @db.Timestamptz(6)
+  patientDoseSpotId    String      @map("patient_dose_spot_id") @db.VarChar(255)
+  prescribedNdc        String?     @map("prescribed_ndc") @db.VarChar(13)
+  dispensedNdc         String?     @map("dispensed_ndc") @db.VarChar(13)
+  details              Json        @db.Json
+  createdAt            DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("filled_prescriptions")
+}
+
+model ShippingAddress {
+  id        String   @id @default(uuid()) @db.Uuid
+  address1  String   @map("address_1") @db.VarChar(255)
+  address2  String?  @map("address_2") @db.VarChar(255)
+  city      String   @db.VarChar(255)
+  state     String   @db.VarChar(255)
+  zipCode   String   @map("zip_code") @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("shipping_addresses")
+}
+
+model Pharmacy {
+  id         String      @id @default(uuid()) @db.Uuid
+  name       String      @db.VarChar(255)
+  doseSpotId String      @map("dose_spot_id") @db.VarChar(255)
+  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("pharmacies")
+}
+
+model Patient {
+  id                     String               @id @default(uuid()) @db.Uuid
+  firstName              String               @db.VarChar(255) @map("first_name")
+  lastName               String               @db.VarChar(255) @map("last_name")
+  dob                    DateTime             @db.Timestamptz(6)
+  doseSpotId             String?              @map("dose_spot_id") @db.VarChar(255)
+  addressId              String               @map("address_id") @db.Uuid
+  alternateAddressId     String?              @map("alternate_address_id") @db.Uuid
+  createdAt  DateTime    @default(now())      @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime    @default(now())      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("patients")
+}
+
+model Clinician {
+  id         String      @id @default(uuid()) @db.Uuid
+  prefix     String      @db.VarChar(255)
+  firstName  String      @db.VarChar(255) @map("first_name")
+  lastName   String      @db.VarChar(255) @map("last_name")
+  suffix     String      @db.VarChar(255)
+  doseSpotId String      @map("dose_spot_id") @db.VarChar(255)
+  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("clinicians")
+}
+
+model OrderBatch {
+  id                  String   @id @default(uuid()) @db.Uuid
+  userId              String   @map("user_id") @db.Text
+  validUntil          DateTime @map("valid_until") @db.Timestamptz(6)
+
+  @@index([validUntil], map: "valid_until_index")
+  @@map("order_batches")
+}
+
+model OrderStatus {
+  id                  Int      @id @db.SmallInt
+  status              String   @db.VarChar(255)
+  terminal            Boolean  @default(false)
+
+  @@map("order_statuses")
+}
+
+model OrderCommentary {
+  id                  String   @id @default(uuid()) @db.Uuid
+  orderId             String   @map("order_id") @db.Uuid
+  userId              String   @map("user_id") @db.Uuid
+  userName            String   @map("user_name") @db.VarChar(255)
+  createdAt           DateTime @default(now())  @map("created_at") @db.Timestamptz(6)
+  comment             String   @db.VarChar(255)
+
+  @@map("order_commentaries")
+}
+
+model OrderItemCommentary {
+  id                  String          @id @default(uuid()) @db.Uuid
+  orderItemId         String          @map("order_item_id") @db.Uuid
+  orderItemAction     OrderItemAction @map("order_item_action")
+  createdAt           DateTime        @default(now())  @map("created_at") @db.Timestamptz(6)
+  userId              String          @map("user_id") @db.Uuid
+  userName            String          @map("user_name") @db.VarChar(255)
+  comment             String          @db.VarChar(255)
+
+  @@map("order_item_commentaries")
+}
+
+model PayloadLog {
+  id              Int           @id @default(autoincrement())
+  httpStatusCode  Int?          @map("http_status_code")
+  requestService  String?       @map("request_service") @db.VarChar(255)
+  requestPayload  Json?         @map("request_payload") @db.Json
+  responsePayload Json?         @map("response_payload") @db.Json
+  createdAt       DateTime?     @default(now()) @map("created_at") @db.Timestamptz(6)
+  orderId         String?       @map("order_id") @db.Uuid
+  orderItemId     String?       @map("order_item_id") @db.Uuid
+
+  @@map("payload_logs")
+}
+
+enum OrderItemAction {
+  routed
+  pv1
+  pv2
+  shipped
+
+  @@map("order_item_actions")
+}

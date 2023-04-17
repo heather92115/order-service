@@ -1,0 +1,24 @@
+version: 3
+projects:
+  - name: demo
+    dir: .infra/terraform
+    workflow: demo
+  - name: production
+    dir: .infra/terraform
+    apply_requirements: [mergeable, approved]
+    workflow: production
+workflows:
+  demo:
+    plan:
+      steps:
+        - init:
+            extra_args: [-backend-config=env/demo.backend.tfvars, -reconfigure]
+        - plan:
+            extra_args: [-var-file=env/demo.tfvars]
+  production:
+    plan:
+      steps:
+        - init:
+            extra_args: [-backend-config=env/production.backend.tfvars, -reconfigure]
+        - plan:
+            extra_args: [-var-file=env/production.tfvars]

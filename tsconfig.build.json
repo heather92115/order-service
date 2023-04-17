@@ -1,0 +1,14 @@
+{
+  "exclude": [
+    "bin",
+    "dist",
+    "node_modules",
+    "test",
+    "**/__mocks__/**",
+    "**/__fixtures__/**",
+    "**/*.spec.ts",
+    ".eslintrc.js",
+    "jest.config.ts"
+  ],
+  "extends": "./tsconfig.json"
+}

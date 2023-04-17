@@ -1,0 +1,211 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+directive @extends on INTERFACE | OBJECT
+
+directive @external on FIELD_DEFINITION | OBJECT
+
+directive @key(fields: String!) on INTERFACE | OBJECT
+
+directive @provides(fields: String!) on FIELD_DEFINITION
+
+directive @requires(fields: String!) on FIELD_DEFINITION
+
+input AddApprovedRegimenInput {
+  billingUnitQuantity: Int!
+  billingUnitType: String!
+  daysSupply: Int!
+  id: ID
+  isActive: Boolean!
+  medicationId: ID!
+}
+
+input AddMedicationInformationInput {
+  amountUnit: String!
+  amountValue: Int!
+  code: String!
+  doseForm: String!
+  intendedRoute: String!
+  manufacturer: String!
+  name: String!
+  packagingUnit: String!
+  packagingValue: Int!
+  productType: String!
+}
+
+input AddNurxItemInput {
+  counselTemplateCategoryId: String!
+  itemId: String!
+  nurxDrugId: String!
+  price: Float!
+  priceUnitId: String!
+  v2CashAllowed: Boolean!
+}
+
+input AddProductInput {
+  brands: [Brand!]!
+  medplumId: String!
+  nurxItem: AddNurxItemInput
+  tmProduct: AddTmProductInput
+  upc: String!
+}
+
+input AddTmProductInput {
+  careAppDrugClass: String!
+  careAppDrugType: String!
+  tmPlatformId: String!
+}
+
+type ApprovedRegimen {
+  """The number of billing units."""
+  billingUnitQuantity: Int!
+
+  """
+  The type of pharmaceutical product. For example: a tablet, inhaler, or cream. Types should fit into NCPDP''s billing unit categories of "Each (discrete unit)," "Millimeter (liquid volume)," or "Gram (weight)". The synonymous term used by vendors like DoseSpot and First Databank (FDB) is "dose form."
+  """
+  billingUnitType: String!
+  createdAt: DateTime!
+
+  """
+  The number of days the medication will last based upon usage prescribed by a provider.
+  """
+  daysSupply: Int!
+  id: ID!
+  isActive: Boolean!
+  product: Product!
+  updatedAt: DateTime!
+}
+
+"""List of supported Treatment Brands"""
+enum Brand {
+  Cove
+  Facet
+  Keeps
+  NurxMentalHealth
+  Picnic
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Inventory {
+  createdAt: DateTime!
+  id: ID!
+  isActive: Boolean!
+  pharmacy: Pharmacy!
+  product: Product!
+  stock: String!
+  updatedAt: DateTime!
+}
+
+type MedicationInformation {
+  amountUnit: String!
+  amountValue: Int!
+  doseForm: String!
+  id: ID!
+  intendedRoute: String!
+  manufacturer: String
+  name: String!
+  ndc: String!
+  packagingUnit: String!
+  packagingValue: Int!
+  productType: String!
+  status: String!
+}
+
+type MedicationKnowledgePackagedDrug {
+  amountUnit: String
+  amountValue: String
+  code: String!
+  doseForm: String!
+  intendedRoute: String!
+  manufacturer: String!
+  name: String!
+  packagedDrugId: String!
+  packagingUnit: String
+  packagingValue: String
+  productType: String
+}
+
+type Mutation {
+  """Adds an approved regimen"""
+  addApprovedRegimen(approvedRegimenData: AddApprovedRegimenInput!): ApprovedRegimen!
+
+  """Add treatments here"""
+  addTreatment(packagedDrug: AddMedicationInformationInput!, product: AddProductInput!): Treatment!
+}
+
+type NurxItem {
+  counselTemplateCategoryId: String!
+  itemId: ID!
+  nurxDrugId: String!
+  price: Float!
+  priceUnitId: String!
+  v2CashAllowed: Boolean!
+}
+
+type Pharmacy {
+  createdAt: DateTime!
+  externalId: String!
+  id: ID!
+  name: String!
+  updatedAt: DateTime!
+}
+
+type Product {
+  brands: [Brand!]!
+  medplumId: ID!
+  nurxItem: NurxItem
+  tmProduct: TmProduct
+  upc: String!
+}
+
+type Query {
+  """Returns a specific regimen"""
+  approvedRegimen(id: ID!): ApprovedRegimen!
+
+  """Returns a list of approved regimens"""
+  approvedRegimens: [ApprovedRegimen!]!
+
+  """Returns a list of approved regimens by product id"""
+  approvedRegimensByMedicationId(medicationId: ID!): [ApprovedRegimen!]!
+
+  """Returns a list of inventories"""
+  inventories: [Inventory!]!
+
+  """Returns a list of Packaged Drugs"""
+  packagedDrugs(name: String!): [MedicationKnowledgePackagedDrug!]!
+
+  """Returns a Packaged Drugs based on an id"""
+  packagedDrugsById(id: String!): MedicationKnowledgePackagedDrug!
+
+  """Returns a list of regimen billing units"""
+  regimenBillingUnits: [RegimenBillingUnit!]!
+
+  """Returns a specific treatment"""
+  treatment(id: String!): Treatment!
+
+  """Returns a list of treatments"""
+  treatments: [Treatment!]!
+}
+
+type RegimenBillingUnit {
+  id: ID!
+  name: String!
+}
+
+type TmProduct {
+  careAppDrugClass: String!
+  careAppDrugType: String!
+  tmPlatformId: ID!
+}
+
+type Treatment {
+  id: ID!
+  medicationInformation: MedicationInformation!
+  product: Product!
+}
+
